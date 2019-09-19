@@ -1,0 +1,57 @@
+#header {
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 55px;
+    background-color: #000;
+    position: absolute;
+}
+
+h1 {
+    color: white;
+    font-size: 40px;
+    margin: 0px;
+    margin-left: 10px;
+}
+
+#graph {
+    position: absolute;
+    top: 55px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 55px);
+    background-color: #EEE;
+    overflow: auto;
+}
+
+.option {
+    width: 100%;
+    border-bottom: 1px solid #000;
+}
+
+.option td {
+    text-align: center;
+    transition-duration: 0.5s;
+}
+
+.option td:hover {
+    background-color: #000;
+    color: #FFF;
+}
+
+.row {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.name {
+    height: 1em;
+    margin: auto;
+}
+
+@media only screen and (min-width: 768px) {
+    .row {
+        flex-direction: row;
+    }
+}
