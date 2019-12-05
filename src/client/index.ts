@@ -1,28 +1,29 @@
 require("./static/index.html");
 require("./static/index.css");
 
-type ChartList = {
+type ChartList = Array<{
     chart: Chart,
     deviceId: string
-}[];
+}>;
 
 type Mode = "hours" | "tenminutes" | "minutes";
 type Labels = {[key: string]: string[]};
 
 const labels: Labels = {
-    "hours": Array.from({length: 24}, (_, key) => String(0 - key) + "h"),
-    "tenminutes": Array.from({length: 24}, (_, key) => String(0 - key * 10) + "m"),
-    "minutes": Array.from({length: 24}, (_, key) => String(0 - key) + "m")
-}
+    hours: Array.from({length: 24}, (_, key) => String(0 - key) + "h"),
+    tenminutes: Array.from({length: 24}, (_, key) => String(0 - key * 10) + "m"),
+    minutes: Array.from({length: 24}, (_, key) => String(0 - key) + "m")
+};
+
 const chartList: ChartList = [];
 let currentMode: Mode = "hours";
 let timer: number = -1;
 let deviceName: {[key: string]: string} = {};
 
 async function request(url: string, data?: any): Promise<any> {
-    return await new Promise<any>(function(resolve: (value: any) => void, reject: (err: any) => void) {
+    return await new Promise<any>((resolve: (value: any) => void, reject: (err: any) => void) => {
         const xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() {
+        xhr.onreadystatechange = () => {
             if (xhr.readyState === 4) {
                 if (xhr.status !== 200) {
                     alert("エラーが発生しました: " + String(xhr.status));
@@ -36,7 +37,7 @@ async function request(url: string, data?: any): Promise<any> {
                     resolve(JSON.parse(response));
                 }
             }
-        }
+        };
         if (typeof data !== "undefined") {
             xhr.open("post", url);
             xhr.setRequestHeader("Content-Type", "application/json");
@@ -51,7 +52,7 @@ async function request(url: string, data?: any): Promise<any> {
 function makeIntervalLink(label: string, mode: Mode) {
     const element = document.createElement("td");
     element.textContent = label;
-    element.onclick = function() {
+    element.onclick = () => {
         currentMode = mode;
         clearTimeout(timer);
         renderLoop();
@@ -67,17 +68,15 @@ function makeOperationLink(label: string, callback: any) {
 }
 
 function setName(device: string) {
-    return async function() {
+    return async () => {
         const name = prompt("デバイスの名前を入力してください。", deviceName[device] || "");
         if (name !== null) {
             deviceName[device] = name;
-            await request("/api/devices/" + device, {
-                name: name
-            });
+            await request("/api/devices/" + device, {name: name});
             clearTimeout(timer);
             render(false);
         }
-    }
+    };
 }
 
 async function renderLoop() {
@@ -89,7 +88,7 @@ async function renderLoop() {
         chart.chart.update();
     }
     timer = window.setTimeout(renderLoop, 60 * 1000);
-};
+}
 
 async function render(refresh: boolean) {
     const graph = document.getElementById("graph")!;
@@ -106,7 +105,7 @@ async function render(refresh: boolean) {
 
     const operations = document.createElement("table");
     operations.setAttribute("class", "option");
-    operations.appendChild(makeOperationLink("Refresh devices list", async function() {
+    operations.appendChild(makeOperationLink("Refresh devices list", async () => {
         clearTimeout(timer);
         render(true);
     }));
@@ -124,7 +123,7 @@ async function render(refresh: boolean) {
     for (const deviceId of devices) {
         const url = "/api/devices/" + encodeURIComponent(deviceId);
         const data = await request(url);
-        
+
         const canvas = document.createElement("canvas");
         canvas.width = graph.clientWidth / 2;
         canvas.height = graph.clientHeight / 4;
@@ -161,7 +160,7 @@ async function render(refresh: boolean) {
                 scales: {
                     yAxes: [{
                         ticks: {
-                            callback: function(label) {
+                            callback: (label) => {
                                 return Number(label).toFixed(2);
                             }
                         }
@@ -177,7 +176,7 @@ async function render(refresh: boolean) {
     timer = window.setTimeout(renderLoop, 60 * 1000);
 }
 
-(async function() {
+(async () => {
     deviceName = await request("/api/names");
     await render(false);
 })();

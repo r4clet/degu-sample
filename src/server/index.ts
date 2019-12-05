@@ -1,12 +1,18 @@
-import * as Express from "express"
-import * as AWS from "aws-sdk"
-import * as fs from "fs"
-import * as BodyParser from "body-parser"
+import * as AWS from "aws-sdk";
+import * as BodyParser from "body-parser";
+import * as Express from "express";
+import * as fs from "fs";
 
 const deviceIds: string[] = [];
 const deviceNames: {[key: string]: string} = {};
 
-async function queryAll(client: AWS.DynamoDB.DocumentClient, tableName: string, current: number, period: number, start?: any): Promise<{}> {
+async function queryAll(
+    client: AWS.DynamoDB.DocumentClient,
+    tableName: string,
+    current: number,
+    period: number,
+    start?: any
+): Promise<{}> {
     return await new Promise<{}>((resolve: (value: {}) => void, reject: (err: any) => void) => {
         client.scan({
             TableName: tableName,
@@ -29,7 +35,13 @@ async function queryAll(client: AWS.DynamoDB.DocumentClient, tableName: string, 
     });
 }
 
-async function query(client: AWS.DynamoDB.DocumentClient, tableName: string, identifier: string, current: number, period: number): Promise<{}> {
+async function query(
+    client: AWS.DynamoDB.DocumentClient,
+    tableName: string,
+    identifier: string,
+    current: number,
+    period: number
+): Promise<{}> {
     return await new Promise<{}>((resolve: (value: {}) => void, reject: (err: any) => void) => {
         client.query({
             TableName: tableName,
@@ -92,14 +104,16 @@ function getTemp(client: AWS.DynamoDB.DocumentClient, config: any, interval: num
             const index = Math.floor((basetime - row.recordtime) / interval);
             result[index].push(Number(row.temperature.temp));
         }
-        res.status(200).json(result.map(temp =>
-                                    temp.length > 0 ? (temp.reduce((prev, current) => prev + current) / temp.length).toFixed(2) : 0));
-    }
+        res.status(200).json(result.map((temp) =>
+                                    temp.length > 0
+                                    ? (temp.reduce((prev, current) => prev + current) / temp.length).toFixed(2)
+                                    : 0));
+    };
 }
 
 async function scan(client: AWS.DynamoDB.DocumentClient, config: any) {
     const baseTime = Date.now();
-    let last: any = undefined;
+    let last: any;
     while (true) {
         const struct: any = await queryAll(client, config.table, baseTime, 24 * 60 * 60 * 1000, last);
         deviceIds.length = 0;
@@ -124,7 +138,7 @@ function refresh(client: AWS.DynamoDB.DocumentClient, config: any) {
     return async (_: Express.Request, res: Express.Response) => {
         await scan(client, config);
         res.status(200).json({});
-    }
+    };
 }
 
 function names(_: Express.Request, res: Express.Response) {
@@ -158,12 +172,12 @@ export async function listen() {
                     deviceNames[key] = data[key];
                 }
             }
-        } catch(err) {
+        } catch (err) {
             if (err.code !== "ENOENT") {
                 throw err;
             }
         }
-        
+
         const client = new AWS.DynamoDB.DocumentClient({region: config.region});
         await scan(client, config);
 
@@ -183,7 +197,7 @@ export async function listen() {
         app.post("/api/devices/:identifier", setName);
         app.use("/api", (_: Express.Request, res: Express.Response) => res.status(404).json({}));
         app.use((_: Express.Request, res: Express.Response) => res.status(404));
-        app.listen(8000, function() {
+        app.listen(8000, () => {
             console.log("サーバーを起動しました。");
         });
     } catch (err) {
