@@ -88,7 +88,7 @@ async function renderLoop() {
         chart.chart.data.labels = labels[currentMode];
         chart.chart.update();
     }
-    timer = setTimeout(renderLoop, 60 * 1000) as any;
+    timer = window.setTimeout(renderLoop, 60 * 1000);
 };
 
 async function render(refresh: boolean) {
@@ -174,7 +174,7 @@ async function render(refresh: boolean) {
             deviceId: deviceId
         });
     }
-    timer = setTimeout(renderLoop, 60 * 1000) as any;
+    timer = window.setTimeout(renderLoop, 60 * 1000);
 }
 
 (async function() {
